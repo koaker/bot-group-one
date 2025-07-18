@@ -2459,6 +2459,7 @@ class TelegramAPI {
 
 // 处理程序
 class BotHandler {
+
   // 处理消息的主入口
   static async handleUpdate(update, env, ctx) {
     console.log(`DEBUG: handleUpdate 接收到更新: ${JSON.stringify(update).substring(0, 200)}...`);
@@ -2510,44 +2511,22 @@ class BotHandler {
       await TelegramAPI.sendMessage(chatId, '👋 欢迎使用Auto-CCB Bot！此机器人主要用于群组管理。');
       return null;
     }
-    
-    // 处理积分相关命令
-    if (text.startsWith('/points') || text.startsWith('/addpoints') ||
-        text.startsWith('/delpoints') || text.startsWith('/leaderboard') ||
-        text.startsWith('/checkin')) {
-      return await PointsSystem.handlePointsCommand(text, msg, chatId, kv);
-    }
-    
-    // 处理商店相关命令
-    if (text.startsWith('/store') || text.startsWith('/buy') || text.startsWith('/get') ||
-        text.startsWith('/purchases') || text.startsWith('/addproduct') ||
-        text.startsWith('/removeproduct') || text.startsWith('/setstock') ||
-        text.startsWith('/setredeemed') || text.startsWith('/setpurchased')) {
-      return await StoreSystem.handleStoreCommand(text, msg, chatId, kv);
-    }
-    
-    // 处理群管理命令
-    if (text.startsWith('/ban') || text.startsWith('/unban') ||
-        text.startsWith('/mute') || text.startsWith('/unmute') ||
-        text.startsWith('/settitle')) {
-      return await GroupManagementSystem.handleGroupManagementCommand(text, msg, chatId, kv);
-    }
-    
-    // 处理AI相关命令
-    if (text.startsWith('/ai')) {
-      return await this.handleAICommand(text, msg, chatId, kv, env);
-    }
-    
-    // 处理帮助命令
-    if (text.startsWith('/help')) {
-      return await this.handleHelpCommand(msg, chatId);
+    // 3. 对所有其他命令使用命令映射表
+    if (text.startsWith('/')) {
+      const command = text.split(' ')[0].split('@')[0];
+      const handler = commandHandlers[command];
+
+      if (handler) {
+        // 找到了对应的处理函数，直接调用
+        return await handler(text, msg, chatId, kv, env);
+      }
     }
     
     // 其他命令
-    await TelegramAPI.sendMessage(chatId, '🔄 功能开发中...');
+    await TelegramAPI.sendMessage(chatId, '🔄 功能开发中...或者命令无法识别');
     return null;
   }
-  
+
   // 处理群聊消息
   static async handleGroupMessage(msg, chatId, kv, env) {
     // 消息文本，如果是文本消息
@@ -2560,27 +2539,11 @@ class BotHandler {
       // 获取命令部分（去掉可能的@botusername后缀）
       const commandParts = text.split(' ');
       const command = commandParts[0].split('@')[0];
-      
-      // 根据命令类型处理
-      if (['/ai', '/aiset', '/aiconfig', '/aitest'].includes(command)) {
-        return await this.handleAICommand(text, msg, chatId, kv, env);
-      }
-      
-      if (['/points', '/addpoints', '/delpoints', '/leaderboard', '/checkin'].includes(command)) {
-        return await PointsSystem.handlePointsCommand(text, msg, chatId, kv);
-      }
-      
-      if (['/store', '/buy', '/get', '/purchases', '/addproduct', '/removeproduct',
-           '/setstock', '/setredeemed', '/setpurchased'].includes(command)) {
-        return await StoreSystem.handleStoreCommand(text, msg, chatId, kv);
-      }
-      
-      if (['/ban', '/unban', '/mute', '/unmute', '/settitle'].includes(command)) {
-        return await GroupManagementSystem.handleGroupManagementCommand(text, msg, chatId, kv);
-      }
-      
-      if (command === '/help') {
-        return await this.handleHelpCommand(msg, chatId);
+      const handler = commandHandlers[command];
+
+      if (handler) {
+        // 找到了对应的处理函数，直接调用
+        return await handler(text, msg, chatId, kv, env);
       }
       
       // 忽略其他命令
@@ -3476,6 +3439,46 @@ class BotHandler {
     return [];
   }
 }
+
+// 命令映射表
+const commandHandlers = {
+  // AI 命令
+  '/ai': BotHandler.handleAICommand,
+  '/aiset': BotHandler.handleAICommand,
+  '/aiconfig': BotHandler.handleAICommand,
+  '/aitest': BotHandler.handleAICommand,
+  '/aitestsync': BotHandler.handleAICommand, //
+  '/aipreset': BotHandler.handleAICommand, //
+  '/aiscan': BotHandler.handleAICommand, //
+
+  // 积分系统命令
+  '/points': PointsSystem.handlePointsCommand,
+  '/addpoints': PointsSystem.handlePointsCommand,
+  '/delpoints': PointsSystem.handlePointsCommand,
+  '/leaderboard': PointsSystem.handlePointsCommand,
+  '/checkin': PointsSystem.handlePointsCommand,
+
+  // 商店系统命令
+  '/store': StoreSystem.handleStoreCommand,
+  '/buy': StoreSystem.handleStoreCommand,
+  '/get': StoreSystem.handleStoreCommand, // 'get' 是 'buy' 的别名
+  '/purchases': StoreSystem.handleStoreCommand,
+  '/addproduct': StoreSystem.handleStoreCommand,
+  '/removeproduct': StoreSystem.handleStoreCommand,
+  '/setstock': StoreSystem.handleStoreCommand,
+  '/setredeemed': StoreSystem.handleStoreCommand,
+  '/setpurchased': StoreSystem.handleStoreCommand,
+
+  // 群组管理命令
+  '/ban': GroupManagementSystem.handleGroupManagementCommand,
+  '/unban': GroupManagementSystem.handleGroupManagementCommand,
+  '/mute': GroupManagementSystem.handleGroupManagementCommand,
+  '/unmute': GroupManagementSystem.handleGroupManagementCommand,
+  '/settitle': GroupManagementSystem.handleGroupManagementCommand,
+
+  // 帮助命令
+  '/help': BotHandler.handleHelpCommand,
+};
 
 // AI服务类
 class AIService {
