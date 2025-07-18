@@ -7,6 +7,7 @@
 `ADMIN_IDS`: 管理员列表ID(用逗号分隔)<br>
 
 `AI_API_KEY`: 模型密钥<br>
+
 `AI_CUSTOM_REPLY`: 拦截消息时启动AI自动回复,否则将使用模板回复(默认true)<br>
 
 `AI_PROVIDER`: 模型兼容供应商(默认openai)<br>
