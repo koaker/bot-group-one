@@ -946,9 +946,9 @@ class GroupManagementSystem {
     // 根据命令类型执行相应操作
     switch (command) {
       case '/ban':
-        return await this.banUser(chatId, targetUserId, targetUsername, reason, msg);
+        return await GroupManagementSystem.banUser(chatId, targetUserId, targetUsername, reason, msg);
       case '/unban':
-        return await this.unbanUser(chatId, targetUserId, targetUsername, msg);
+        return await GroupManagementSystem.unbanUser(chatId, targetUserId, targetUsername, msg);
       case '/mute':
         // 解析禁言时长，默认60分钟(3600秒)
         let muteDuration = 3600;
@@ -956,12 +956,12 @@ class GroupManagementSystem {
           muteDuration = parseInt(reason.split(' ')[0]);
           reason = reason.split(' ').slice(1).join(' ');
         }
-        return await this.muteUser(chatId, targetUserId, targetUsername, muteDuration, reason, msg);
+        return await GroupManagementSystem.muteUser(chatId, targetUserId, targetUsername, muteDuration, reason, msg);
       case '/unmute':
-        return await this.unmuteUser(chatId, targetUserId, targetUsername, msg);
+        return await GroupManagementSystem.unmuteUser(chatId, targetUserId, targetUsername, msg);
       case '/settitle':
         const title = reason || '';
-        return await this.setUserTitle(chatId, targetUserId, targetUsername, title, msg);
+        return await GroupManagementSystem.setUserTitle(chatId, targetUserId, targetUsername, title, msg);
       default:
         await TelegramAPI.sendMessage(chatId,
           '❌ 未知的群管理命令',
@@ -1234,9 +1234,9 @@ class PointsSystem {
   // 添加用户积分
   static async addUserPoints(userId, amount, kv) {
     try {
-      const currentPoints = await this.getUserPoints(userId, kv);
+      const currentPoints = await PointsSystem.getUserPoints(userId, kv);
       const newPoints = currentPoints + amount;
-      await this.setUserPoints(userId, newPoints, kv);
+      await PointsSystem.setUserPoints(userId, newPoints, kv);
       return newPoints;
     } catch (error) {
       console.error(`添加用户积分失败: ${error.message}`);
@@ -1247,9 +1247,9 @@ class PointsSystem {
   // 减少用户积分
   static async subtractUserPoints(userId, amount, kv) {
     try {
-      const currentPoints = await this.getUserPoints(userId, kv);
+      const currentPoints = await PointsSystem.getUserPoints(userId, kv);
       const newPoints = Math.max(0, currentPoints - amount);
-      await this.setUserPoints(userId, newPoints, kv);
+      await PointsSystem.setUserPoints(userId, newPoints, kv);
       return newPoints;
     } catch (error) {
       console.error(`减少用户积分失败: ${error.message}`);
@@ -1265,7 +1265,7 @@ class PointsSystem {
       const leaderboardData = await Promise.all(
         keys.map(async (key) => {
           const userId = key.name.split(':')[1];
-          const points = await this.getUserPoints(userId, kv);
+          const points = await PointsSystem.getUserPoints(userId, kv);
           return { userId, points };
         })
       );
@@ -1346,7 +1346,7 @@ class PointsSystem {
       const randomPoints = Math.floor(Math.random() * 50) + 1;
       
       // 添加积分
-      const newPoints = await this.addUserPoints(userId, randomPoints, kv);
+      const newPoints = await PointsSystem.addUserPoints(userId, randomPoints, kv);
       
       if (newPoints === null) {
         return { success: false, error: '添加积分失败' };
@@ -1368,7 +1368,7 @@ class PointsSystem {
       // 处理签到命令
       if (text.startsWith('/checkin')) {
         const userId = msg.from.id;
-        const result = await this.handleCheckin(userId, kv);
+        const result = await PointsSystem.handleCheckin(userId, kv);
         
         if (!result.success) {
           if (result.error === '今天已经签到过了') {
@@ -1396,7 +1396,7 @@ class PointsSystem {
       // 检查是否是查询自己的积分命令
       if (text.startsWith('/points') && text.trim() === '/points') {
         const userId = msg.from.id;
-        const points = await this.getUserPoints(userId, kv);
+        const points = await PointsSystem.getUserPoints(userId, kv);
         
         await TelegramAPI.sendMessage(chatId,
           `💰 积分信息\n用户: ${msg.from.first_name}\n当前积分: ${points}`,
@@ -1415,7 +1415,7 @@ class PointsSystem {
           targetUserId = msg.reply_to_message.from.id;
         } else {
           // 尝试从命令中提取用户ID
-          targetUserId = await this.extractUserIdFromText(text, msg, chatId);
+          targetUserId = await PointsSystem.extractUserIdFromText(text, msg, chatId);
           
           if (!targetUserId) {
             await TelegramAPI.sendMessage(chatId,
@@ -1427,7 +1427,7 @@ class PointsSystem {
         }
         
         // 获取目标用户的积分
-        const points = await this.getUserPoints(targetUserId, kv);
+        const points = await PointsSystem.getUserPoints(targetUserId, kv);
         
         // 获取用户信息
         let userInfo;
@@ -1487,7 +1487,7 @@ class PointsSystem {
           }
           
           // 提取用户ID
-          targetUserId = await this.extractUserIdFromText(text, msg, chatId);
+          targetUserId = await PointsSystem.extractUserIdFromText(text, msg, chatId);
           
           if (!targetUserId) {
             await TelegramAPI.sendMessage(chatId,
@@ -1511,7 +1511,7 @@ class PointsSystem {
         }
         
         // 添加积分
-        const newPoints = await this.addUserPoints(targetUserId, amount, kv);
+        const newPoints = await PointsSystem.addUserPoints(targetUserId, amount, kv);
         
         if (newPoints === null) {
           await TelegramAPI.sendMessage(chatId,
@@ -1580,7 +1580,7 @@ class PointsSystem {
           }
           
           // 提取用户ID
-          targetUserId = await this.extractUserIdFromText(text, msg, chatId);
+          targetUserId = await PointsSystem.extractUserIdFromText(text, msg, chatId);
           
           if (!targetUserId) {
             await TelegramAPI.sendMessage(chatId,
@@ -1604,7 +1604,7 @@ class PointsSystem {
         }
         
         // 减少积分
-        const newPoints = await this.subtractUserPoints(targetUserId, amount, kv);
+        const newPoints = await PointsSystem.subtractUserPoints(targetUserId, amount, kv);
         
         if (newPoints === null) {
           await TelegramAPI.sendMessage(chatId,
@@ -1635,7 +1635,7 @@ class PointsSystem {
       // 检查是否是积分排行榜命令
       if (text.startsWith('/leaderboard')) {
         // 获取积分排行榜
-        const leaderboard = await this.getLeaderboard(kv);
+        const leaderboard = await PointsSystem.getLeaderboard(kv);
         
         if (leaderboard.length === 0) {
           await TelegramAPI.sendMessage(chatId,
@@ -1704,7 +1704,7 @@ class StoreSystem {
   // 添加商品
   static async addProduct(productId, name, price, stock, description, kv) {
     try {
-      const products = await this.getProducts(kv);
+      const products = await StoreSystem.getProducts(kv);
       
       // 检查产品ID是否已存在
       const existingProductIndex = products.findIndex(p => p.id === productId);
@@ -1732,7 +1732,7 @@ class StoreSystem {
         });
       }
       
-      return await this.saveProducts(products, kv);
+      return await StoreSystem.saveProducts(products, kv);
     } catch (error) {
       console.error(`添加商品失败: ${error.message}`);
       return false;
@@ -1742,7 +1742,7 @@ class StoreSystem {
   // 删除商品
   static async removeProduct(productId, kv) {
     try {
-      const products = await this.getProducts(kv);
+      const products = await StoreSystem.getProducts(kv);
       const filteredProducts = products.filter(p => p.id !== productId);
       
       if (filteredProducts.length === products.length) {
@@ -1750,7 +1750,7 @@ class StoreSystem {
         return false;
       }
       
-      return await this.saveProducts(filteredProducts, kv);
+      return await StoreSystem.saveProducts(filteredProducts, kv);
     } catch (error) {
       console.error(`删除商品失败: ${error.message}`);
       return false;
@@ -1760,7 +1760,7 @@ class StoreSystem {
   // 获取单个商品
   static async getProduct(productId, kv) {
     try {
-      const products = await this.getProducts(kv);
+      const products = await StoreSystem.getProducts(kv);
       return products.find(p => p.id === productId) || null;
     } catch (error) {
       console.error(`获取商品失败: ${error.message}`);
@@ -1771,7 +1771,7 @@ class StoreSystem {
   // 更新商品库存
   static async updateProductStock(productId, newStock, kv) {
     try {
-      const products = await this.getProducts(kv);
+      const products = await StoreSystem.getProducts(kv);
       const productIndex = products.findIndex(p => p.id === productId);
       
       if (productIndex === -1) {
@@ -1781,7 +1781,7 @@ class StoreSystem {
       products[productIndex].stock = parseInt(newStock);
       products[productIndex].updatedAt = Date.now();
       
-      return await this.saveProducts(products, kv);
+      return await StoreSystem.saveProducts(products, kv);
     } catch (error) {
       console.error(`更新商品库存失败: ${error.message}`);
       return false;
@@ -1836,7 +1836,7 @@ class StoreSystem {
   static async updatePurchaseStatus(userId, purchaseId, newStatus, kv) {
     try {
       // 获取用户所有购买记录
-      const purchases = await this.getUserPurchases(userId, kv);
+      const purchases = await StoreSystem.getUserPurchases(userId, kv);
       
       // 查找指定的购买记录
       const purchaseIndex = purchases.findIndex(p => p.purchaseId === purchaseId);
@@ -1862,7 +1862,7 @@ class StoreSystem {
   // 通过商品ID找到用户购买记录
   static async findUserPurchaseByProductId(userId, productId, kv) {
     try {
-      const purchases = await this.getUserPurchases(userId, kv);
+      const purchases = await StoreSystem.getUserPurchases(userId, kv);
       return purchases.find(p => p.productId === productId);
     } catch (error) {
       console.error(`查找用户购买记录失败: ${error.message}`);
@@ -1877,7 +1877,7 @@ class StoreSystem {
       const points = await PointsSystem.getUserPoints(userId, kv);
       
       // 获取商品信息
-      const product = await this.getProduct(productId, kv);
+      const product = await StoreSystem.getProduct(productId, kv);
       
       if (!product) {
         return { success: false, error: '商品不存在' };
@@ -1902,7 +1902,7 @@ class StoreSystem {
       
       // 减少库存
       const newStock = product.stock - 1;
-      const stockUpdateSuccess = await this.updateProductStock(productId, newStock, kv);
+      const stockUpdateSuccess = await StoreSystem.updateProductStock(productId, newStock, kv);
       
       if (!stockUpdateSuccess) {
         // 如果更新库存失败，回滚积分扣除
@@ -1911,7 +1911,7 @@ class StoreSystem {
       }
       
       // 记录购买历史
-      await this.recordPurchase(userId, productId, product.name, product.price, kv);
+      await StoreSystem.recordPurchase(userId, productId, product.name, product.price, kv);
       
       return {
         success: true,
@@ -1931,7 +1931,7 @@ class StoreSystem {
       // 查看已购买商品
       if (text.startsWith('/purchases')) {
         const userId = msg.from.id;
-        const purchases = await this.getUserPurchases(userId, kv);
+        const purchases = await StoreSystem.getUserPurchases(userId, kv);
         
         if (purchases.length === 0) {
           await TelegramAPI.sendMessage(chatId,
@@ -1989,7 +1989,7 @@ class StoreSystem {
         }
         
         // 查找用户的商品购买记录
-        const purchase = await this.findUserPurchaseByProductId(userId, productId, kv);
+        const purchase = await StoreSystem.findUserPurchaseByProductId(userId, productId, kv);
         
         if (!purchase) {
           await TelegramAPI.sendMessage(chatId,
@@ -2000,7 +2000,7 @@ class StoreSystem {
         }
         
         // 更新状态为已兑换
-        const result = await this.updatePurchaseStatus(userId, purchase.purchaseId, 'redeemed', kv);
+        const result = await StoreSystem.updatePurchaseStatus(userId, purchase.purchaseId, 'redeemed', kv);
         
         if (!result.success) {
           await TelegramAPI.sendMessage(chatId,
@@ -2051,7 +2051,7 @@ class StoreSystem {
         }
         
         // 查找用户的商品购买记录
-        const purchase = await this.findUserPurchaseByProductId(userId, productId, kv);
+        const purchase = await StoreSystem.findUserPurchaseByProductId(userId, productId, kv);
         
         if (!purchase) {
           await TelegramAPI.sendMessage(chatId,
@@ -2062,7 +2062,7 @@ class StoreSystem {
         }
         
         // 更新状态为已购买
-        const result = await this.updatePurchaseStatus(userId, purchase.purchaseId, 'purchased', kv);
+        const result = await StoreSystem.updatePurchaseStatus(userId, purchase.purchaseId, 'purchased', kv);
         
         if (!result.success) {
           await TelegramAPI.sendMessage(chatId,
@@ -2081,7 +2081,7 @@ class StoreSystem {
       
       // 查看商店
       if (text.startsWith('/store')) {
-        const products = await this.getProducts(kv);
+        const products = await StoreSystem.getProducts(kv);
         
         if (products.length === 0) {
           await TelegramAPI.sendMessage(chatId,
@@ -2127,7 +2127,7 @@ class StoreSystem {
         const productId = parts[1];
         const userId = msg.from.id;
         
-        const result = await this.purchaseProduct(userId, productId, kv);
+        const result = await StoreSystem.purchaseProduct(userId, productId, kv);
         
         if (!result.success) {
           if (result.error === '积分不足') {
@@ -2195,7 +2195,7 @@ class StoreSystem {
           return false;
         }
         
-        const success = await this.addProduct(productId, name, price, stock, description, kv);
+        const success = await StoreSystem.addProduct(productId, name, price, stock, description, kv);
         
         if (!success) {
           await TelegramAPI.sendMessage(chatId,
@@ -2234,7 +2234,7 @@ class StoreSystem {
         }
         
         const productId = parts[1];
-        const product = await this.getProduct(productId, kv);
+        const product = await StoreSystem.getProduct(productId, kv);
         
         if (!product) {
           await TelegramAPI.sendMessage(chatId,
@@ -2244,7 +2244,7 @@ class StoreSystem {
           return false;
         }
         
-        const success = await this.removeProduct(productId, kv);
+        const success = await StoreSystem.removeProduct(productId, kv);
         
         if (!success) {
           await TelegramAPI.sendMessage(chatId,
@@ -2294,7 +2294,7 @@ class StoreSystem {
           return false;
         }
         
-        const product = await this.getProduct(productId, kv);
+        const product = await StoreSystem.getProduct(productId, kv);
         
         if (!product) {
           await TelegramAPI.sendMessage(chatId,
@@ -2304,7 +2304,7 @@ class StoreSystem {
           return false;
         }
         
-        const success = await this.updateProductStock(productId, newStock, kv);
+        const success = await StoreSystem.updateProductStock(productId, newStock, kv);
         
         if (!success) {
           await TelegramAPI.sendMessage(chatId,
