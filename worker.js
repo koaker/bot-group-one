@@ -1364,6 +1364,10 @@ class PointsSystem {
   
   // 处理积分命令
   static async handlePointsCommand(text, msg, chatId, kv) {
+    if (!kv) {
+        await TelegramAPI.sendMessage(chatId, '❌ 数据库服务未配置，积分功能不可用。', { reply_to_message_id: msg.message_id });
+        return false;
+    }
     try {
       // 处理签到命令
       if (text.startsWith('/checkin')) {
@@ -1927,6 +1931,10 @@ class StoreSystem {
   
   // 处理商店命令
   static async handleStoreCommand(text, msg, chatId, kv) {
+    if (!kv) {
+        await TelegramAPI.sendMessage(chatId, '❌ 数据库服务未配置，商店功能不可用。', { reply_to_message_id: msg.message_id });
+        return false;
+    }
     try {
       // 查看已购买商品
       if (text.startsWith('/purchases')) {
@@ -2856,6 +2864,10 @@ class BotHandler {
   
   // 处理AI相关命令
   static async handleAICommand(text, msg, chatId, kv, env) {
+    if (!kv) {
+        await TelegramAPI.sendMessage(chatId, '❌ 数据库服务未配置，AI 配置功能不可用。', { reply_to_message_id: msg.message_id });
+        return null;
+    }
     // 分解命令和参数
     const parts = text.split(' ');
     const command = parts[0].split('@')[0].toLowerCase();
